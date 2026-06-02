@@ -241,21 +241,23 @@ export default function StudentHomePage() {
       {/* ── TopNav ── */}
       <header className="bg-white/90 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-slate-100 shadow-[0_2px_20px_rgba(0,119,182,0.06)]">
         <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-10 py-3.5">
-          {/* Brand */}
-          <div className="flex items-center gap-3">
-            <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
-              SiMagangku
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileNavOpen((prev) => !prev)}
-              className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-on-surface-variant hover:bg-slate-100 transition-colors"
-              aria-label="Toggle navigation menu"
-            >
-              <span className="material-symbols-outlined text-xl">
-                {mobileNavOpen ? "close" : "menu"}
-              </span>
-            </button>
+          <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-10 py-3.5">
+            {/* Brand */}
+            <div className="flex items-center gap-3">
+              <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
+                SiMagangku
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen((prev) => !prev)}
+                className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-on-surface-variant hover:bg-slate-100 transition-colors"
+                aria-label="Toggle navigation menu"
+              >
+                <span className="material-symbols-outlined text-xl">
+                  {mobileNavOpen ? "close" : "menu"}
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Nav */}
@@ -265,8 +267,8 @@ export default function StudentHomePage() {
                 key={link.href}
                 href={link.href}
                 className={`text-sm font-medium transition-colors pb-0.5 ${link.active
-                    ? "text-primary border-b-2 border-brand-cyan"
-                    : "text-on-surface-variant hover:text-primary"
+                  ? "text-primary border-b-2 border-brand-cyan"
+                  : "text-on-surface-variant hover:text-primary"
                   }`}
               >
                 {link.label}
@@ -408,8 +410,8 @@ export default function StudentHomePage() {
                 id={`tag-${tag.replace(/\s+/g, "-").toLowerCase()}`}
                 onClick={() => setActiveTag(activeTag === tag ? null : tag)}
                 className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 ${activeTag === tag
-                    ? "bg-brand-cyan text-white border-brand-cyan shadow-sm"
-                    : "bg-white text-on-surface-variant border-slate-200 hover:border-brand-cyan hover:text-primary"
+                  ? "bg-brand-cyan text-white border-brand-cyan shadow-sm"
+                  : "bg-white text-on-surface-variant border-slate-200 hover:border-brand-cyan hover:text-primary"
                   }`}
               >
                 {tag}
