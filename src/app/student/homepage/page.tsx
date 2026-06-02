@@ -95,14 +95,14 @@ function CompanyCard({ company, onApply }: { company: Company & { appCount?: num
 
       {/* CTA */}
       <Link href={`/student/perusahaan/${company.id}`}>
-      <button
-        onClick={() => onApply(company.id)}
-        disabled={company.quota === 0 || !company.status}
-        className="mt-auto w-full bg-gradient-to-r from-brand-cyan to-[#48cae4] text-white text-xs font-bold py-2 rounded-lg hover:shadow-[0_4px_15px_rgba(0,180,216,0.4)] hover:opacity-90 transition-all duration-200 tracking-wide uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-        id={`ajukan-pkl-${company.id}`}
-      >
-        {company.quota === 0 ? "Penuh" : !company.status ? "Tutup" : "Ajukan PKL"}
-      </button>
+        <button
+          onClick={() => onApply(company.id)}
+          disabled={company.quota === 0 || !company.status}
+          className="mt-auto w-full bg-gradient-to-r from-brand-cyan to-[#48cae4] text-white text-xs font-bold py-2 rounded-lg hover:shadow-[0_4px_15px_rgba(0,180,216,0.4)] hover:opacity-90 transition-all duration-200 tracking-wide uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          id={`ajukan-pkl-${company.id}`}
+        >
+          {company.quota === 0 ? "Penuh" : !company.status ? "Tutup" : "Ajukan PKL"}
+        </button>
       </Link>
     </div>
   );
@@ -264,11 +264,10 @@ export default function StudentHomePage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors pb-0.5 ${
-                  link.active
+                className={`text-sm font-medium transition-colors pb-0.5 ${link.active
                     ? "text-primary border-b-2 border-brand-cyan"
                     : "text-on-surface-variant hover:text-primary"
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -300,7 +299,7 @@ export default function StudentHomePage() {
                         <p className="text-xs font-medium text-on-surface">Pendaftaran PKL Semester Ganjil Telah Dibuka</p>
                         <p className="text-[11px] text-on-surface-variant mt-0.5">2 jam lalu</p>
                       </div>
-                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -344,7 +343,7 @@ export default function StudentHomePage() {
                 ))}
               </div>
             </div>
-              )}
+          )}
         </div>
       </header>
 
@@ -408,11 +407,10 @@ export default function StudentHomePage() {
                 key={tag}
                 id={`tag-${tag.replace(/\s+/g, "-").toLowerCase()}`}
                 onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 ${
-                  activeTag === tag
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 ${activeTag === tag
                     ? "bg-brand-cyan text-white border-brand-cyan shadow-sm"
                     : "bg-white text-on-surface-variant border-slate-200 hover:border-brand-cyan hover:text-primary"
-                }`}
+                  }`}
               >
                 {tag}
               </button>
@@ -485,7 +483,7 @@ export default function StudentHomePage() {
       <footer className="bg-white border-t border-slate-100 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-10 flex flex-col md:flex-row justify-between items-center gap-4">
           <Link href="/" className="font-bold text-base text-primary hover:opacity-80 transition-opacity">
-             SiMagangku
+            SiMagangku
           </Link>
           <p className="text-xs text-on-surface-variant text-center">
             © 2026 SiMagangku Internship Information System. All rights reserved.
