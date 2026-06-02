@@ -56,7 +56,6 @@ function QuotaBadge({ quota, color }: { quota: number; color: string }) {
     </span>
   );
 }
-
 function CompanyCard({ company, onApply }: { company: Company & { appCount?: number }; onApply: (id: number) => void }) {
   const color = quotaColor(company.quota);
   const initials = logoInitial(company.name);
@@ -223,6 +222,9 @@ export default function StudentHomePage() {
     router.push(`/student/pengajuan/form/${companyId}`);
   }
 
+  const pending = applications.filter((a) => a.status === "PENDING").length;
+  const accepted = applications.filter((a) => a.status === "ACCEPTED").length;
+  const rejected = applications.filter((a) => a.status === "REJECTED").length;
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
@@ -241,23 +243,21 @@ export default function StudentHomePage() {
       {/* ── TopNav ── */}
       <header className="bg-white/90 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-slate-100 shadow-[0_2px_20px_rgba(0,119,182,0.06)]">
         <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-10 py-3.5">
-          <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-10 py-3.5">
-            {/* Brand */}
-            <div className="flex items-center gap-3">
-              <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
-                SiMagangku
-              </Link>
-              <button
-                type="button"
-                onClick={() => setMobileNavOpen((prev) => !prev)}
-                className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-on-surface-variant hover:bg-slate-100 transition-colors"
-                aria-label="Toggle navigation menu"
-              >
-                <span className="material-symbols-outlined text-xl">
-                  {mobileNavOpen ? "close" : "menu"}
-                </span>
-              </button>
-            </div>
+          {/* Brand */}
+          <div className="flex items-center gap-3">
+            <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
+              SiMagangku
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((prev) => !prev)}
+              className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-on-surface-variant hover:bg-slate-100 transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              <span className="material-symbols-outlined text-xl">
+                {mobileNavOpen ? "close" : "menu"}
+              </span>
+            </button>
           </div>
 
           {/* Nav */}
@@ -288,6 +288,9 @@ export default function StudentHomePage() {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
+                {pending > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                )}
               </button>
 
               {/* Notif Dropdown */}
@@ -302,6 +305,15 @@ export default function StudentHomePage() {
                         <p className="text-[11px] text-on-surface-variant mt-0.5">2 jam lalu</p>
                       </div>
                     </div>
+                    {pending > 0 && (
+                      <div className="flex gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
+                        <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs font-medium text-on-surface">{pending} Lamaran Sedang Diproses</p>
+                          <p className="text-[11px] text-on-surface-variant mt-0.5">Cek status pengajuan Anda</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -329,24 +341,24 @@ export default function StudentHomePage() {
               </div>
             </div>
           </div>
-
-          {mobileNavOpen && (
-            <div className="md:hidden bg-white border-t border-slate-200 shadow-sm">
-              <div className="flex flex-col gap-2 px-4 py-4">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileNavOpen(false)}
-                    className="block rounded-xl px-3 py-2 text-sm font-medium text-on-surface-variant hover:bg-slate-100"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+
+        {mobileNavOpen && (
+          <div className="md:hidden bg-white border-t border-slate-200 shadow-sm">
+            <div className="flex flex-col gap-2 px-4 py-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileNavOpen(false)}
+                  className="block rounded-xl px-3 py-2 text-sm font-medium text-on-surface-variant hover:bg-slate-100"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ── Main Content ── */}
