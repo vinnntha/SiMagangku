@@ -251,7 +251,7 @@ export async function deleteApplication(id: number): Promise<void> {
 // ─── Applications ─────────────────────────────────────────────────────────────
 
 export async function getApplications(): Promise<Application[]> {
-  const res = await request<any>("/applications/my");
+  const res = await request<any>("/applications");
   return Array.isArray(res) ? res : (res.data || []);
 }
 
