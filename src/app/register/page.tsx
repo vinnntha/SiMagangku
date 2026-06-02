@@ -47,7 +47,7 @@ export default function RegisterPage() {
       {/* HEADER & NAVIGATION */}
       <header className="sticky top-0 left-0 w-full h-20 bg-white/90 backdrop-blur-md border-b border-slate-100 z-50 flex items-center justify-between px-6 sm:px-12">
         <Link href="/" className="text-xl font-bold text-brand-cyan tracking-tight flex items-center gap-2 hover:opacity-90 transition-opacity">
-          SITP Malang
+          SiMagangku
         </Link>
       </header>
 
@@ -75,7 +75,7 @@ export default function RegisterPage() {
 
           {/* Title and Subtitle */}
           <span className="text-base font-bold text-brand-cyan tracking-tight mb-0.5">
-            SITP Malang
+            SiMagangku
           </span>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight text-center mb-1">
             Create Account
@@ -248,23 +248,15 @@ export default function RegisterPage() {
               Login here
             </Link>
           </p>
-
-          {/* Interactive Slide indicator */}
-          <div className="flex items-center gap-1.5 mt-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-            <span className="w-4 h-1.5 rounded-full bg-brand-cyan" />
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-          </div>
-
         </div>
       </main>
 
       {/* FOOTER */}
       <footer className="w-full bg-white border-t border-slate-100 py-6 px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 z-10">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-2">
-          <span className="text-sm font-bold text-brand-cyan">SITP Malang</span>
+          <span className="text-sm font-bold text-brand-cyan">SiMagangku</span>
           <span className="text-xs text-slate-400 self-center">
-            © 2024 SITP Malang. Tech-forward professionalism.
+            © 2024 SiMagangku. Tech-forward professionalism.
           </span>
         </div>
         <div className="flex items-center gap-6">

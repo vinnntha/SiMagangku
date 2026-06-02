@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { login as loginApi, saveToken } from "@/lib/api";
+import { login as loginApi, saveToken, decodeToken } from "@/lib/api";
 import { setAuthToken } from "@/helpers/cookies";
 
 export default function LoginPage() {
@@ -24,13 +24,21 @@ export default function LoginPage() {
       const res = await loginApi({ email, password });
       saveToken(res.access_token);
       setAuthToken(res.access_token, keepLoggedIn);
-      router.push("/student/homepage");
+
+      // Differentiate role redirection
+      const payload = decodeToken(res.access_token);
+      if (payload?.role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/student/homepage");
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed. Check your credentials.");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans relative overflow-x-hidden">
@@ -41,7 +49,7 @@ export default function LoginPage() {
       {/* HEADER & NAVIGATION */}
       <header className="sticky top-0 left-0 w-full h-20 bg-white/90 backdrop-blur-md border-b border-slate-100 z-50 flex items-center justify-between px-6 sm:px-12">
         <Link href="/" className="text-xl font-bold text-brand-cyan tracking-tight flex items-center gap-2 hover:opacity-90 transition-opacity">
-          SITP Malang
+          SiMagangku
         </Link>
       </header>
 
@@ -194,9 +202,9 @@ export default function LoginPage() {
       {/* FOOTER */}
       <footer className="w-full bg-white border-t border-slate-100 py-6 px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 z-10">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-2">
-          <span className="text-sm font-bold text-brand-cyan">SITP Malang</span>
+          <span className="text-sm font-bold text-brand-cyan">SiMagangku</span>
           <span className="text-xs text-slate-400 self-center">
-            © 2024 SITP Malang. Tech-forward professionalism.
+            © 2024 SiMagangku. Tech-forward professionalism.
           </span>
         </div>
         <div className="flex items-center gap-6">

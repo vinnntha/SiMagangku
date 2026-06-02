@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getCompanies, getApplications, type Company, type Application } from "@/lib/api";
+import { getCompanies, getMyApplications, type Company, type Application } from "@/lib/api";
 import { getAuthToken, removeAuthToken } from "@/helpers/cookies";
+import router from "next/router";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -56,7 +57,7 @@ function QuotaBadge({ quota, color }: { quota: number; color: string }) {
   );
 }
 
-function CompanyCard({ company, onApply }: { company: Company; onApply: (id: number) => void }) {
+function CompanyCard({ company, onApply }: { company: Company & { appCount?: number }; onApply: (id: number) => void }) {
   const color = quotaColor(company.quota);
   const initials = logoInitial(company.name);
 
@@ -67,7 +68,14 @@ function CompanyCard({ company, onApply }: { company: Company; onApply: (id: num
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-cyan/20 to-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0 border border-brand-cyan/10">
           {initials}
         </div>
-        <QuotaBadge quota={company.quota} color={color} />
+        <div className="flex flex-col items-end gap-1.5">
+          <QuotaBadge quota={company.quota} color={color} />
+          {company.appCount !== undefined && company.appCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">
+              🔥 {company.appCount} Pendaftar
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Name & category */}
@@ -86,6 +94,7 @@ function CompanyCard({ company, onApply }: { company: Company; onApply: (id: num
       )}
 
       {/* CTA */}
+      <Link href={`/student/perusahaan/${company.id}`}>
       <button
         onClick={() => onApply(company.id)}
         disabled={company.quota === 0 || !company.status}
@@ -94,6 +103,7 @@ function CompanyCard({ company, onApply }: { company: Company; onApply: (id: num
       >
         {company.quota === 0 ? "Penuh" : !company.status ? "Tutup" : "Ajukan PKL"}
       </button>
+      </Link>
     </div>
   );
 }
@@ -124,17 +134,26 @@ export default function StudentHomePage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [applyingId, setApplyingId] = useState<number | null>(null);
   const [applySuccess, setApplySuccess] = useState<string | null>(null);
 
-  // ── Auth guard ──
+  // ── Auth guard + token sync ──
   useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
+    const cookieToken = getAuthToken();
+    if (!cookieToken) {
       router.replace("/login");
+      return;
+    }
+    if (typeof window !== "undefined") {
+      const lsToken = localStorage.getItem("SiMagangku_access_token");
+      if (!lsToken) {
+        localStorage.setItem("SiMagangku_access_token", cookieToken);
+      }
     }
   }, [router]);
 
@@ -142,14 +161,19 @@ export default function StudentHomePage() {
   useEffect(() => {
     async function load() {
       try {
+        setLoadingCompanies(true);
         const [companiesData, applicationsData] = await Promise.all([
           getCompanies(),
-          getApplications(),
+          getMyApplications().catch((err) => {
+            console.warn("Gagal memuat data pengajuan:", err);
+            return [] as Application[];
+          }),
         ]);
         setCompanies(companiesData);
         setApplications(applicationsData);
-      } catch {
-        // silently fail; user sees empty state
+      } catch (err) {
+        console.error("Gagal memuat data:", err);
+        setFetchError("Gagal memuat data perusahaan. Silakan refresh halaman.");
       } finally {
         setLoadingCompanies(false);
       }
@@ -157,13 +181,24 @@ export default function StudentHomePage() {
     load();
   }, []);
 
-  // ── Derived stats ──
-  const pending = applications.filter((a) => a.status === "PENDING").length;
-  const accepted = applications.filter((a) => a.status === "ACCEPTED").length;
-  const rejected = applications.filter((a) => a.status === "REJECTED").length;
+  // ── Sort companies by application count (descending) ──
+  const sortedCompanies = React.useMemo(() => {
+    const counts: Record<number, number> = {};
+    // Calculate application count for each company
+    applications.forEach((app) => {
+      if (app.companyId) {
+        counts[app.companyId] = (counts[app.companyId] || 0) + 1;
+      }
+    });
+
+    return [...companies].map((c) => ({
+      ...c,
+      appCount: counts[c.id] || 0,
+    })).sort((a, b) => b.appCount - a.appCount);
+  }, [companies, applications]);
 
   // ── Filtered companies ──
-  const filteredCompanies = companies.filter((c) => {
+  const filteredCompanies = sortedCompanies.filter((c) => {
     const matchSearch =
       searchQuery === "" ||
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -185,22 +220,7 @@ export default function StudentHomePage() {
   }
 
   async function handleApply(companyId: number) {
-    setApplyingId(companyId);
-    try {
-      const { createApplication } = await import("@/lib/api");
-      await createApplication({ companyId });
-      setApplySuccess("Pengajuan PKL berhasil dikirim!");
-      // Refresh applications
-      const updated = await getApplications();
-      setApplications(updated);
-    } catch (err: unknown) {
-      setApplySuccess(
-        err instanceof Error ? err.message : "Gagal mengirim pengajuan. Coba lagi."
-      );
-    } finally {
-      setApplyingId(null);
-      setTimeout(() => setApplySuccess(null), 3500);
-    }
+    router.push(`/student/pengajuan/form/${companyId}`);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -222,9 +242,21 @@ export default function StudentHomePage() {
       <header className="bg-white/90 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-slate-100 shadow-[0_2px_20px_rgba(0,119,182,0.06)]">
         <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-10 py-3.5">
           {/* Brand */}
-          <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
-            SITP Malang
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
+              SiMagangku
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((prev) => !prev)}
+              className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-on-surface-variant hover:bg-slate-100 transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              <span className="material-symbols-outlined text-xl">
+                {mobileNavOpen ? "close" : "menu"}
+              </span>
+            </button>
+          </div>
 
           {/* Nav */}
           <nav className="hidden md:flex gap-7 items-center">
@@ -255,9 +287,6 @@ export default function StudentHomePage() {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                {pending > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-                )}
               </button>
 
               {/* Notif Dropdown */}
@@ -271,16 +300,7 @@ export default function StudentHomePage() {
                         <p className="text-xs font-medium text-on-surface">Pendaftaran PKL Semester Ganjil Telah Dibuka</p>
                         <p className="text-[11px] text-on-surface-variant mt-0.5">2 jam lalu</p>
                       </div>
-                    </div>
-                    {pending > 0 && (
-                      <div className="flex gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
-                        <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs font-medium text-on-surface">{pending} Lamaran Sedang Diproses</p>
-                          <p className="text-[11px] text-on-surface-variant mt-0.5">Cek status pengajuan Anda</p>
-                        </div>
                       </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -308,6 +328,23 @@ export default function StudentHomePage() {
               </div>
             </div>
           </div>
+
+          {mobileNavOpen && (
+            <div className="md:hidden bg-white border-t border-slate-200 shadow-sm">
+              <div className="flex flex-col gap-2 px-4 py-4">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    className="block rounded-xl px-3 py-2 text-sm font-medium text-on-surface-variant hover:bg-slate-100"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+              )}
         </div>
       </header>
 
@@ -406,6 +443,19 @@ export default function StudentHomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
+          ) : fetchError ? (
+            <div className="text-center py-16 text-on-surface-variant">
+              <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <p className="text-sm font-medium text-red-500 mb-2">{fetchError}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 text-xs bg-brand-cyan text-white px-4 py-2 rounded-lg hover:bg-brand-cyan-hover transition-colors"
+              >
+                Coba Lagi
+              </button>
+            </div>
           ) : filteredCompanies.length === 0 ? (
             <div className="text-center py-16 text-on-surface-variant">
               <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -429,65 +479,19 @@ export default function StudentHomePage() {
             </div>
           )}
         </section>
-
-        {/* ── Status Pengajuan Summary ── */}
-        <section id="status-pengajuan" className="mb-4">
-          <h2 className="font-bold text-lg text-on-surface mb-5">Status Pengajuan Saya</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Card: Menunggu */}
-            <div className="bg-white border border-slate-100 rounded-xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
-              <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-on-surface">{pending}</p>
-                <p className="text-xs text-on-surface-variant font-medium">Menunggu Review</p>
-              </div>
-            </div>
-
-            {/* Card: Diterima */}
-            <div className="bg-white border border-slate-100 rounded-xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
-              <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-on-surface">{accepted}</p>
-                <p className="text-xs text-on-surface-variant font-medium">Diterima</p>
-              </div>
-            </div>
-
-            {/* Card: Ditolak */}
-            <div className="bg-white border border-slate-100 rounded-xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
-              <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-on-surface">{rejected}</p>
-                <p className="text-xs text-on-surface-variant font-medium">Ditolak</p>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* ── Footer ── */}
       <footer className="bg-white border-t border-slate-100 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-10 flex flex-col md:flex-row justify-between items-center gap-4">
           <Link href="/" className="font-bold text-base text-primary hover:opacity-80 transition-opacity">
-            ⬡ SITP Malang
+             SiMagangku
           </Link>
           <p className="text-xs text-on-surface-variant text-center">
-            © 2024 SITP Malang Internship Information System. All rights reserved.
+            © 2026 SiMagangku Internship Information System. All rights reserved.
           </p>
           <nav className="flex gap-5 flex-wrap justify-center">
-            {["Privacy Policy", "Terms of Service", "Contact Us", "About SITP"].map((item) => (
+            {["Privacy Policy", "Terms of Service", "Contact Us", "About SiMagangku"].map((item) => (
               <a
                 key={item}
                 href="#"

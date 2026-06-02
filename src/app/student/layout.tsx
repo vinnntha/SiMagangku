@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard Siswa | SITP Malang",
+  title: "Dashboard Siswa | SiMagangku",
   description:
-    "Dashboard siswa SITP Malang — temukan perusahaan PKL, ajukan magang, dan pantau status pengajuan Anda.",
+    "Dashboard siswa SiMagangku — temukan perusahaan PKL, ajukan magang, dan pantau status pengajuan Anda.",
 };
 
 export default function StudentLayout({

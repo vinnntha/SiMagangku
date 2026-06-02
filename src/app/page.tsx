@@ -12,7 +12,7 @@ export default function Home() {
             href="/"
             className="font-display-lg text-title-md font-bold text-primary dark:text-primary-fixed-dim hover:opacity-80 transition-opacity"
           >
-            SITP Malang
+            SiMagangku
           </Link>
           
           <nav className="hidden md:flex gap-8 items-center">
@@ -92,7 +92,7 @@ export default function Home() {
         <section id="features" className="py-20 sm:py-24 bg-surface border-t border-slate-100">
           <div className="max-w-container-max mx-auto px-margin-mobile sm:px-margin-desktop">
             <h2 className="font-headline-lg text-headline-lg text-center mb-12 sm:mb-16 text-on-surface">
-              Fitur Unggulan SITP Malang
+              Fitur Unggulan SiMagangku
             </h2>
             
             <div className="grid md:grid-cols-3 gap-8">
@@ -177,7 +177,7 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="font-body-md text-on-surface-variant italic text-sm leading-relaxed">
-                  "SITP Malang sangat membantu saya mencari tempat PKL. Prosesnya cepat dan saya langsung diterima di perusahaan impian!"
+                  "SiMagangku sangat membantu saya mencari tempat PKL. Prosesnya cepat dan saya langsung diterima di perusahaan impian!"
                 </p>
                 <div className="flex gap-0.5 text-amber-400">
                   {[...Array(5)].map((_, i) => (
@@ -269,10 +269,10 @@ export default function Home() {
             
             <div className="flex flex-col gap-6 text-left">
               <h2 className="font-headline-lg text-headline-lg text-on-surface">
-                Tentang SITP Malang
+                Tentang SiMagangku
               </h2>
               <p className="font-body-md text-body-md text-on-surface-variant">
-                SITP Malang didirikan pada tahun 2024 dengan misi utama untuk menjembatani kesenjangan antara dunia pendidikan dan industri di Malang melalui sistem manajemen profesional yang berbasis teknologi.
+                SiMagangku didirikan pada tahun 2024 dengan misi utama untuk menjembatani kesenjangan antara dunia pendidikan dan industri di Malang melalui sistem manajemen profesional yang berbasis teknologi.
               </p>
               <p className="font-body-md text-body-md text-on-surface-variant">
                 Kami berkomitmen penuh untuk mendukung pengembangan karir setiap siswa dan mahasiswa dengan menyediakan platform yang transparan, efisien, dan mudah diakses untuk menemukan pengalaman kerja nyata yang berkualitas.
@@ -319,10 +319,10 @@ export default function Home() {
             href="/"
             className="font-title-md text-title-md font-semibold text-primary dark:text-primary-fixed-dim hover:opacity-80 transition-opacity"
           >
-            SITP Malang
+            SiMagangku
           </Link>
           <div className="text-on-surface text-center md:text-left text-xs sm:text-sm opacity-70">
-            © 2026 SITP Malang. Professional Internship Information System.
+            © 2026 SiMagangku. Professional Internship Information System.
           </div>
           <nav className="flex gap-6 flex-wrap justify-center">
             <a className="text-on-surface-variant hover:text-primary transition-colors text-xs sm:text-sm" href="#privacy">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getApplications, getCompanies, getProfile, type Application, type Company, type User } from "@/lib/api";
+import { getCompanies, getMyApplications, getProfile, type Application, type Company, type User } from "@/lib/api";
 import { getAuthToken, removeAuthToken } from "@/helpers/cookies";
 
 interface DocumentItem {
@@ -33,6 +33,7 @@ export default function StudentApplicationsPage() {
     const [activeTabOpen, setActiveTabOpen] = useState(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [notifOpen, setNotifOpen] = useState(false);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
     // Modal and active items
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -54,27 +55,43 @@ export default function StudentApplicationsPage() {
     }, [router]);
 
     // Load API data
-    useEffect(() => {
-        async function loadData() {
-            try {
-                const [appRes, compRes, profileRes] = await Promise.all([
-                    getApplications(),
-                    getCompanies(),
-                    getProfile().catch(() => null)
-                ]);
-
-                setApplications(appRes);
-                setCompanies(compRes);
-                if (profileRes) {
-                    setUser((profileRes as any).data || profileRes);
-                }
-            } catch (err) {
-                console.error("Error loading applications data:", err);
-            } finally {
-                setLoading(false);
+    async function loadData() {
+        try {
+            const token = getAuthToken();
+            if (!token) {
+                router.replace("/login");
+                return;
             }
+
+            // Get user ID from JWT token
+            const [appRes, compRes, profileRes] = await Promise.all([
+                getMyApplications(),
+                getCompanies(),
+                getProfile().catch(() => null)
+            ]);
+
+            setApplications(appRes);
+            setCompanies(compRes);
+            if (profileRes) {
+                setUser((profileRes as any).data || profileRes);
+            }
+        } catch (err) {
+            console.error("Error loading applications data:", err);
+        } finally {
+            setLoading(false);
         }
+    }
+
+    // Load on mount + re-fetch whenever the user navigates back to this tab
+    useEffect(() => {
         loadData();
+
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") {
+                loadData();
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
 
         // Load documents from localStorage
         if (typeof window !== "undefined") {
@@ -86,6 +103,11 @@ export default function StudentApplicationsPage() {
                 localStorage.setItem("student_documents", JSON.stringify(defaultDocuments));
             }
         }
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibility);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const pending = applications.filter((a) => a.status === "PENDING").length;
@@ -191,6 +213,11 @@ export default function StudentApplicationsPage() {
         showToast(`Mengunduh berkas: ${docName}`);
     };
 
+    const handleRemoveFile = (idx: number) => {
+        setDocuments(documents.filter((_, i) => i !== idx));
+        showToast(`Menghapus berkas`);
+    };
+
     // Status mapping configs
     const statusMapping = {
         PENDING: { text: "Menunggu", className: "bg-[#b3ebff] text-[#00414f]" },
@@ -221,9 +248,21 @@ export default function StudentApplicationsPage() {
             <header className="bg-white/90 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-slate-100 shadow-[0_2px_20px_rgba(0,119,182,0.06)]">
                 <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-10 py-3.5">
                     {/* Brand */}
-                    <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
-                        SITP Malang
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
+                            SiMagangku
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => setMobileNavOpen((prev) => !prev)}
+                            className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-on-surface-variant hover:bg-slate-100 transition-colors"
+                            aria-label="Toggle navigation menu"
+                        >
+                            <span className="material-symbols-outlined text-xl">
+                                {mobileNavOpen ? "close" : "menu"}
+                            </span>
+                        </button>
+                    </div>
 
                     {/* Nav */}
                     <nav className="hidden md:flex gap-7 items-center">
@@ -307,7 +346,24 @@ export default function StudentApplicationsPage() {
                         </div>
                     </div>
                 </div>
-            </header>
+
+                {mobileNavOpen && (
+                  <div className="md:hidden bg-white border-t border-slate-200 shadow-sm">
+                    <div className="flex flex-col gap-2 px-4 py-4">
+                      {navLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMobileNavOpen(false)}
+                          className="block rounded-xl px-3 py-2 text-sm font-medium text-on-surface-variant hover:bg-slate-100"
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </header>
 
             {/* Main Content */}
             <main className="flex-grow pt-28 pb-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
@@ -356,10 +412,10 @@ export default function StudentApplicationsPage() {
                                         </thead>
                                         <tbody className="divide-y divide-outline-variant/10">
                                             {applications.map((app) => {
-                                                const company = companies.find((c) => c.id === app.companyId);
+                                                const company = app.company ?? companies.find((c) => c.id === app.companyId);
                                                 const companyName = company?.name || `Perusahaan Mitra #${app.companyId}`;
                                                 const fieldName = company?.field || "General Intern";
-                                                const statusInfo = statusMapping[app.status] || { text: app.status, className: "bg-gray-100 text-gray-700" };
+                                                const statusInfo = statusMapping[app.status as keyof typeof statusMapping] || { text: app.status, className: "bg-gray-100 text-gray-700" };
 
                                                 return (
                                                     <tr key={app.id} className="hover:bg-primary/5 transition-colors group">
@@ -412,7 +468,7 @@ export default function StudentApplicationsPage() {
                         {/* Documents Card */}
                         <div className="glass-card rounded-xl p-6 bg-white border border-[#00b4d8]/10 shadow-[0px_10px_30px_rgba(0,119,182,0.05)]">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="font-title-md text-title-md text-on-surface font-bold text-[#191c1e]">Dokumen Persyaratan</h3>
+                                <h3 className="font-title-md text-title-md text-[#191c1e] font-bold">Dokumen Persyaratan</h3>
                                 <button
                                     onClick={triggerFileInput}
                                     className="text-primary hover:bg-primary/5 p-1 rounded-full transition-all active:scale-90"
@@ -439,6 +495,9 @@ export default function StudentApplicationsPage() {
                                         <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[20px] shrink-0">
                                             download
                                         </span>
+                                        <button onClick={() => handleRemoveFile(idx)} className={`w-10 h-10 rounded flex items-center justify-center font-bold text-red-500 shrink-0`}>
+                                            <span className="material-symbols-outlined">delete</span>
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -453,7 +512,7 @@ export default function StudentApplicationsPage() {
                                     Profil Anda telah lengkap 95%. Perusahaan lebih menyukai kandidat dengan profil lengkap.
                                 </p>
                                 <Link
-                                    href="/student/homepage"
+                                    href="/student/profil"
                                     className="bg-white text-primary px-6 py-2 rounded-full font-bold text-label-sm hover:bg-opacity-90 transition-all shadow-sm active:scale-95 inline-block text-center"
                                 >
                                     Lihat Profil
@@ -468,12 +527,12 @@ export default function StudentApplicationsPage() {
             </main>
 
             {/* Footer */}
-            <footer className="bg-surface-container-low border-t border-outline-variant/10 mt-auto bg-[#f2f4f6]">
+            <footer className="bg-surface-container-low border-t border-outline-variant/10 mt-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center px-margin-desktop py-8 max-w-container-max mx-auto gap-4">
                     <div className="flex flex-col items-center md:items-start">
-                        <span className="font-title-md text-title-md font-semibold text-primary mb-2">SITP Malang</span>
+                        <span className="font-title-md text-title-md font-semibold text-primary mb-2">SiMagangku</span>
                         <span className="font-label-sm text-label-sm text-on-surface-variant text-center md:text-left">
-                            © 2026 SITP Malang. Tech-Forward Professionalism for Future Careers.
+                            © 2026 SiMagangku. Tech-Forward Professionalism for Future Careers.
                         </span>
                     </div>
                     <div className="flex gap-6">
@@ -509,7 +568,7 @@ export default function StudentApplicationsPage() {
                                 const company = companies.find(c => c.id === selectedApp.companyId);
                                 const companyName = company?.name || `Perusahaan Mitra #${selectedApp.companyId}`;
                                 const fieldName = company?.field || "General Intern";
-                                const statusInfo = statusMapping[selectedApp.status] || { text: selectedApp.status, className: "bg-gray-100 text-gray-700" };
+const statusInfo = statusMapping[selectedApp.status as keyof typeof statusMapping] || { text: selectedApp.status, className: "bg-gray-100 text-gray-700" };
 
                                 return (
                                     <>

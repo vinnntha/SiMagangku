@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCompanies, getProfile, type Company, type User, type Application } from "@/lib/api";
@@ -24,6 +24,7 @@ export default function InternshipPortal() {
     const [loading, setLoading] = useState(true);
     const [activeBtn, setActiveBtn] = useState<string | null>(null);
     const [notifOpen, setNotifOpen] = useState(false);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [activeTag, setActiveTag] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -76,14 +77,59 @@ export default function InternshipPortal() {
             .join("");
     }
 
+    // ── Sort companies by application count (descending) ──
+    const sortedCompanies = React.useMemo(() => {
+        const counts: Record<number, number> = {};
+        // Calculate application count for each company
+        applications.forEach((app) => {
+            if (app.companyId) {
+                counts[app.companyId] = (counts[app.companyId] || 0) + 1;
+            }
+        });
+
+        return [...companyData].map((c) => ({
+            ...c,
+            appCount: counts[c.id] || 0,
+        })).sort((a, b) => b.appCount - a.appCount);
+    }, [companyData, applications]);
+
+
+    // ── Filtered companies ──
+  const filteredCompanies = sortedCompanies.filter((c) => {
+    const matchSearch =
+      searchQuery === "" ||
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.field.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.description ?? "").toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchTag =
+      activeTag === null ||
+      c.field.toLowerCase().includes(activeTag.toLowerCase()) ||
+      (c.description ?? "").toLowerCase().includes(activeTag.toLowerCase());
+
+    return matchSearch && matchTag;
+  });
+
     return (
         <div className="min-h-screen bg-[#f0f4f8] font-[var(--font-be-vietnam)] text-on-surface antialiased">
             <header className="bg-white/90 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-slate-100 shadow-[0_2px_20px_rgba(0,119,182,0.06)]">
                 <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-10 py-3.5">
                     {/* Brand */}
-                    <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
-                        SITP Malang
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <Link href="/" className="font-bold text-lg text-primary hover:opacity-80 transition-opacity tracking-tight">
+                            SiMagangku
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => setMobileNavOpen((prev) => !prev)}
+                            className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-on-surface-variant hover:bg-slate-100 transition-colors"
+                            aria-label="Toggle navigation menu"
+                        >
+                            <span className="material-symbols-outlined text-xl">
+                                {mobileNavOpen ? "close" : "menu"}
+                            </span>
+                        </button>
+                    </div>
 
                     {/* Nav */}
                     <nav className="hidden md:flex gap-7 items-center">
@@ -167,7 +213,24 @@ export default function InternshipPortal() {
                         </div>
                     </div>
                 </div>
-            </header>
+
+                {mobileNavOpen && (
+                  <div className="md:hidden bg-white border-t border-slate-200 shadow-sm">
+                    <div className="flex flex-col gap-2 px-4 py-4">
+                      {navLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMobileNavOpen(false)}
+                          className="block rounded-xl px-3 py-2 text-sm font-medium text-on-surface-variant hover:bg-slate-100"
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </header>
 
             <main className="pt-24 pb-20">
                 {/* Hero / Search Section */}
@@ -246,9 +309,11 @@ export default function InternshipPortal() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {loading ? (
                             <div className="col-span-full text-center text-[#3d494d]">Memuat data perusahaan...</div>
-                        ) : companyData.length === 0 ? (
-                            <div className="col-span-full text-center text-[#3d494d]">Belum ada perusahaan.</div>
-                        ) : companyData.map((company) => (
+                        ) : filteredCompanies.length === 0 ? (
+                            <div className="col-span-full text-center text-[#3d494d]">
+                                {searchQuery ? "Tidak ada perusahaan yang cocok." : "Belum ada perusahaan."}
+                            </div>
+                        ) : filteredCompanies.map((company) => (
                             <div key={company.id} className="bg-white rounded-xl p-6 shadow-[0px_10px_30px_rgba(0,119,182,0.05)] border border-[#bcc9ce]/10 hover:shadow-[0px_15px_40px_rgba(0,119,182,0.1)] transition-all group">
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#00b4d8]/20 to-[#00414f]/10 flex items-center justify-center p-2 border border-[#00b4d8]/10">
@@ -281,6 +346,7 @@ export default function InternshipPortal() {
                                     </Link>
                                     {company.quota > 0 ? (
                                         <button
+                                            onClick={() => router.push(`/student/pengajuan/form/${company.id}`)}
                                             className={`flex-1 px-4 py-2.5 rounded-lg text-[14px] text-white bg-gradient-to-br from-[#00B4D8] to-[#48CAE4] hover:shadow-[0_0_15px_rgba(0,180,216,0.4)] transition-all font-bold ${activeBtn === `apply-${company.id}` ? 'scale-95' : 'scale-100'}`}
                                             onMouseDown={() => handleMouseDown(`apply-${company.id}`)}
                                             onMouseUp={handleMouseUp}
@@ -319,8 +385,8 @@ export default function InternshipPortal() {
             <footer className="w-full py-8 bg-white border-t border-[#bcc9ce]/30">
                 <div className="max-w-[1280px] mx-auto px-[40px] flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex flex-col gap-2">
-                        <span className="text-[16px] font-semibold text-[#00677d]">SITP Malang</span>
-                        <p className="text-[14px] text-[#3d494d]">© 2024 SITP Malang. Professional Internship Information System.</p>
+                        <span className="text-[16px] font-semibold text-[#00677d]">SiMagangku</span>
+                        <p className="text-[14px] text-[#3d494d]">© 2026 SiMagangku. Professional Internship Information System.</p>
                     </div>
                     <div className="flex flex-wrap gap-8 justify-center">
                         <a className="text-[14px] text-[#3d494d] hover:text-[#00677d] transition-colors" href="#">Privacy Policy</a>

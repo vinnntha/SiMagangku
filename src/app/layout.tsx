@@ -19,7 +19,7 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "SITP Malang - Sistem Informasi Tempat PKL",
+  title: "SiMagangku - Sistem Informasi Tempat PKL",
   description: "Sistem Informasi Pengajuan PKL dan Tempat Magang Terintegrasi di Malang",
 };
 

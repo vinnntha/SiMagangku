@@ -1,8 +1,8 @@
 
 
-export const AUTH_COOKIE_KEY = "sitp_token";
+export const AUTH_COOKIE_KEY = "SiMagangku_token";
 
-const DEFAULT_EXPIRY_DAYS = 7;
+const DEFAULT_EXPIRY_DAYS = 1;
 
 export interface CookieOptions {
   /** Number of days until the cookie expires. Omit for a session cookie. */
@@ -114,7 +114,7 @@ export function getAllCookies(): Record<string, string> {
  * Check if a cookie with the given name exists.
  *
  * @example
- * if (hasCookie("sitp_token")) { ... }
+ * if (hasCookie("SiMagangku_token")) { ... }
  */
 export function hasCookie(name: string): boolean {
   return getCookie(name) !== null;
