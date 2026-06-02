@@ -380,10 +380,6 @@ export default function StudentApplicationsPage() {
                         <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/20">
                             <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-white">
                                 <h2 className="font-title-md text-title-md text-primary">Riwayat Pengajuan</h2>
-                                <div className="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-lg border border-outline-variant/30 text-on-surface-variant">
-                                    <span className="material-symbols-outlined text-[18px]">filter_list</span>
-                                    <span className="text-label-sm">Filter</span>
-                                </div>
                             </div>
 
                             <div className="overflow-x-auto bg-white">

@@ -19,7 +19,7 @@ import { getAuthToken, removeAuthToken } from "@/helpers/cookies";
 
 interface Student {
   id: number;
-  nis: string;
+  alamat: string;
   nama: string;
   kelas: string;
   jurusan: string;
@@ -64,7 +64,7 @@ function normalizeStudentsFromApplications(applications: Application[]): Student
 
     const student: Student = {
       id,
-      nis: String(user.nis ?? user.nis_number ?? ""),
+      alamat: String(user.alamat ?? user.address ?? "") || "-",
       nama: String(user.nama ?? user.name ?? user.fullname ?? "") || "-",
       kelas: String(user.kelas ?? user.class ?? ""),
       jurusan: String(user.jurusan ?? user.major ?? ""),
@@ -108,7 +108,7 @@ export default function AdminSiswaPage() {
   // CRUD Modal
   const [crudModalOpen, setCrudModalOpen] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState<number | null>(null);
-  const [formNis, setFormNis] = useState("");
+  const [formAlamat, setFormAlamat] = useState("");
   const [formNama, setFormNama] = useState("");
   const [formKelas, setFormKelas] = useState("");
   const [formJurusan, setFormJurusan] = useState("");
@@ -205,7 +205,7 @@ export default function AdminSiswaPage() {
   };
 
   const handleOpenCreate = () => {
-    setFormNis("");
+    setFormAlamat("");
     setFormNama("");
     setFormKelas("");
     setFormJurusan("");
@@ -216,7 +216,7 @@ export default function AdminSiswaPage() {
   };
 
   const handleOpenEdit = (student: Student) => {
-    setFormNis(student.nis);
+    setFormAlamat(student.alamat);
     setFormNama(student.nama);
     setFormKelas(student.kelas);
     setFormJurusan(student.jurusan);
@@ -228,13 +228,13 @@ export default function AdminSiswaPage() {
 
   const handleSaveStudent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formNis.trim() || !formNama.trim() || !formKelas.trim() || !formJurusan.trim()) {
+    if (!formAlamat.trim() || !formNama.trim() || !formKelas.trim() || !formJurusan.trim()) {
       showToast("Silakan isi semua field yang wajib diisi!");
       return;
     }
 
     const payload = {
-      nis: formNis.trim(),
+      alamat: formAlamat.trim(),
       nama: formNama.trim(),
       kelas: formKelas.trim(),
       jurusan: formJurusan.trim(),
@@ -314,7 +314,7 @@ export default function AdminSiswaPage() {
         if (cols.length >= 4) {
           imported.push({
             id: nextId++,
-            nis: cols[0],
+            alamat: cols[0],
             nama: cols[1],
             kelas: cols[2],
             jurusan: cols[3],
@@ -341,7 +341,7 @@ export default function AdminSiswaPage() {
     return students.filter((s) => {
       const q = searchQuery.toLowerCase();
       return (
-        s.nis.toLowerCase().includes(q) ||
+        s.alamat.toLowerCase().includes(q) ||
         s.nama.toLowerCase().includes(q) ||
         s.kelas.toLowerCase().includes(q) ||
         s.jurusan.toLowerCase().includes(q) ||
@@ -616,10 +616,10 @@ export default function AdminSiswaPage() {
                         Nama Siswa
                       </th>
                       <th className="py-4 px-6 text-label-sm font-label-sm text-on-tertiary-container uppercase tracking-wider font-semibold whitespace-nowrap hidden sm:table-cell w-[15%]">
-                        NIS
+                        Alamat
                       </th>
                       <th className="py-4 px-6 text-label-sm font-label-sm text-on-tertiary-container uppercase tracking-wider font-semibold whitespace-nowrap w-[15%]">
-                        Kelas
+                         Persahaan
                       </th>
                       <th className="py-4 px-6 text-label-sm font-label-sm text-on-tertiary-container uppercase tracking-wider font-semibold whitespace-nowrap w-[20%]">
                         Status PKL
@@ -656,15 +656,15 @@ export default function AdminSiswaPage() {
                             </div>
                           </td>
 
-                          {/* NIS */}
+                          {/* Alamat */}
                           <td className="py-4 px-6 hidden sm:table-cell text-on-surface-variant font-mono text-sm">
-                            {student.nis}
+                            {student.alamat}
                           </td>
 
                           {/* Kelas */}
                           <td className="py-4 px-6">
                             <span className="inline-flex items-center px-3 py-0.5 rounded-full bg-primary-container/15 text-primary text-label-sm font-label-sm font-semibold">
-                              {student.kelas}
+                              {student.perusahaan}
                             </span>
                           </td>
 
@@ -796,18 +796,18 @@ export default function AdminSiswaPage() {
             {/* Modal Form */}
             <form onSubmit={handleSaveStudent}>
               <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                {/* NIS */}
+                {/* Alamat */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="student-nis" className="text-xs font-bold text-[#191c1e] uppercase tracking-wider">
-                    NIS *
+                  <label htmlFor="student-alamat" className="text-xs font-bold text-[#191c1e] uppercase tracking-wider">
+                    Alamat *
                   </label>
                   <input
-                    id="student-nis"
+                    id="student-alamat"
                     type="text"
                     required
                     placeholder="e.g. 20250001"
-                    value={formNis}
-                    onChange={(e) => setFormNis(e.target.value)}
+                    value={formAlamat}
+                    onChange={(e) => setFormAlamat(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-brand-cyan focus:bg-white rounded-lg p-2.5 text-sm text-[#191c1e] outline-none transition-all"
                   />
                 </div>
@@ -935,7 +935,7 @@ export default function AdminSiswaPage() {
                 </div>
                 <div>
                   <h3 className="text-title-md font-bold leading-tight">{detailStudent.nama}</h3>
-                  <p className="text-[12px] opacity-80 mt-0.5">NIS: {detailStudent.nis}</p>
+                  <p className="text-[12px] opacity-80 mt-0.5">Alamat: {detailStudent.alamat}</p>
                 </div>
               </div>
             </div>

@@ -296,14 +296,6 @@ export default function InternshipPortal() {
                             <span className="material-symbols-outlined text-[#00677d]" style={{ fontVariationSettings: "'FILL' 1" }}>business_center</span>
                             Daftar Perusahaan
                         </h2>
-                        <div className="flex gap-2">
-                            <button className="p-2 rounded-lg bg-[#eceef0] text-[#3d494d] hover:text-[#00677d] transition-colors">
-                                <span className="material-symbols-outlined">filter_list</span>
-                            </button>
-                            <button className="p-2 rounded-lg bg-[#eceef0] text-[#3d494d] hover:text-[#00677d] transition-colors">
-                                <span className="material-symbols-outlined">grid_view</span>
-                            </button>
-                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -38,7 +38,7 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
+  
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans relative overflow-x-hidden">

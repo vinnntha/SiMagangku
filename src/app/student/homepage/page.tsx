@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCompanies, getMyApplications, type Company, type Application } from "@/lib/api";
 import { getAuthToken, removeAuthToken } from "@/helpers/cookies";
-import router from "next/router";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

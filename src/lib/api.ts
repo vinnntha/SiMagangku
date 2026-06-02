@@ -63,6 +63,19 @@ export interface Student {
   perusahaan?: string;
 }
 
+export interface UserProfile {
+  id: number
+  name: string
+  email: string
+  role: string
+  gender?: string
+  birthPlace?: string
+  birthDate?: string
+  phone?: string
+  address?: string
+  createdAt: string
+}
+
 // ─── Token Helpers ────────────────────────────────────────────────────────────
 
 export const TOKEN_KEY = "SiMagangku_access_token";
@@ -178,15 +191,20 @@ export async function login(payload: {
   });
 }
 
-export async function getProfile(): Promise<User> {
-  return request<User>("/auth/profile");
+export async function getProfile(): Promise<UserProfile> {
+  const res = await request<any>("/users/profile");
+  if (res?.data && Array.isArray(res.data)) {
+    const token = getToken() ?? getAuthToken();
+    const decoded = decodeToken(token!);
+    return res.data.find((u: any) => u.id === decoded?.sub) || res.data[0];
+  }
+  return res?.data || res;
 }
 
-// Update user profile (partial). Backend expects certain profile fields to be present
 export async function updateProfile(payload: Record<string, any>): Promise<any> {
   return request<any>("/users/profile", {
     method: "PATCH",
-    body: payload as any,
+    body: JSON.stringify(payload), // ← eksplisit stringify
   });
 }
 
@@ -251,7 +269,7 @@ export async function deleteApplication(id: number): Promise<void> {
 // ─── Applications ─────────────────────────────────────────────────────────────
 
 export async function getApplications(): Promise<Application[]> {
-  const res = await request<any>("/applications role=ALL");
+  const res = await request<any>("/applications");
   return Array.isArray(res) ? res : (res.data || []);
 }
 
@@ -261,7 +279,7 @@ export async function getStudents(): Promise<Student[]> {
 }
 
 export async function createStudent(payload: {
-  nis: string;
+  alamat: string;
   nama: string;
   kelas: string;
   jurusan: string;
