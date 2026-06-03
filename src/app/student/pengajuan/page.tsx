@@ -16,7 +16,9 @@ interface DocumentItem {
 }
 
 const defaultDocuments: DocumentItem[] = [
-    
+    { name: "Curriculum_Vitae_2026.pdf", type: "PDF", size: "2.4 MB", date: "30 Mei", icon: "description", colorClass: "bg-red-50 text-red-600" },
+    { name: "Portfolio_Design_Web.zip", type: "ZIP", size: "45 MB", date: "28 Mei", icon: "link", colorClass: "bg-blue-50 text-blue-600" },
+    { name: "Transkrip_Akademik_S5.pdf", type: "PDF", size: "1.1 MB", date: "30 Mei", icon: "school", colorClass: "bg-teal-50 text-teal-600" }
 ];
 
 export default function StudentApplicationsPage() {
@@ -98,7 +100,8 @@ export default function StudentApplicationsPage() {
                 setDocuments(JSON.parse(storedDocs));
             } else {
                 setDocuments(defaultDocuments);
-                localStorage.setItem("student_documents", JSON.stringify(defaultDocuments));
+                localStorage.setItem("student_documents", JSON.stringify(""
+            ));
             }
         }
 
